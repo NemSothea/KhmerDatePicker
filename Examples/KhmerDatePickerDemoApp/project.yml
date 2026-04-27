@@ -1,0 +1,92 @@
+name: KhmerDatePickerDemoApp
+
+options:
+  bundleIdPrefix: com.kosign
+  deploymentTarget:
+    iOS: "14.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""
+    ENABLE_BITCODE: NO
+
+packages:
+  KhmerDatePicker:
+    path: "../.."
+
+targets:
+  KhmerDatePickerDemoApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: KhmerDatePickerDemoApp
+    dependencies:
+      - package: KhmerDatePicker
+    info:
+      path: KhmerDatePickerDemoApp/Generated/Info.plist
+      properties:
+        CFBundleDisplayName: Khmer Demo
+        CFBundleShortVersionString: "1.0.0"
+        UILaunchScreen:
+          UIColorName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kosign.KhmerDatePickerDemoApp
+        TARGETED_DEVICE_FAMILY: "1,2"
+
+  KhmerDatePickerDemoAppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: KhmerDatePickerDemoAppTests
+    dependencies:
+      - target: KhmerDatePickerDemoApp
+      - package: KhmerDatePicker
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kosign.KhmerDatePickerDemoAppTests
+        GENERATE_INFOPLIST_FILE: YES
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/KhmerDatePickerDemoApp.app/KhmerDatePickerDemoApp"
+
+  KhmerDatePickerDemoAppUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: KhmerDatePickerDemoAppUITests
+    dependencies:
+      - target: KhmerDatePickerDemoApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.kosign.KhmerDatePickerDemoAppUITests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: KhmerDatePickerDemoApp
+
+schemes:
+  KhmerDatePickerDemoApp:
+    build:
+      targets:
+        KhmerDatePickerDemoApp: all
+        KhmerDatePickerDemoAppTests: [test]
+        KhmerDatePickerDemoAppUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - KhmerDatePickerDemoAppTests
+        - KhmerDatePickerDemoAppUITests
+    archive:
+      config: Release
