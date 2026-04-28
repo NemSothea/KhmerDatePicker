@@ -1,8 +1,15 @@
 # KhmerDatePicker
 
+[![Swift](https://img.shields.io/badge/Swift-5.9-F05138?logo=swift&logoColor=white)](https://swift.org)
+[![Platforms](https://img.shields.io/badge/Platforms-iOS%2014%2B%20|%20macOS%2011%2B-blue)](https://github.com/NemSothea/KhmerDatePicker)
+[![SPM compatible](https://img.shields.io/badge/SPM-compatible-brightgreen?logo=swift)](https://swift.org/package-manager/)
+[![CI](https://github.com/NemSothea/KhmerDatePicker/actions/workflows/swift.yml/badge.svg)](https://github.com/NemSothea/KhmerDatePicker/actions/workflows/swift.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/NemSothea/KhmerDatePicker?display_name=tag&sort=semver)](https://github.com/NemSothea/KhmerDatePicker/releases)
+
 **Swift Package developed by [NEMSOTHEA](https://github.com/NemSothea) · Sponsored by [KOSIGN (Cambodia) Investment Co., Ltd.](https://kosign.com.kh/)**
 
-A reusable, **MVVM-clean SwiftUI DatePicker** with full Khmer (ខ្មែរ) localization — Khmer numerals (០–៩), Khmer month names (មករា–ធ្នូ), Khmer weekday names (ច័ន្ទ–អាទិត្យ), and Khmer time labels (ម៉ោង / នាទី / វិនាទី). Switch between Khmer and English at runtime with a single binding.
+The Khmer-localized SwiftUI **DatePicker** for Cambodian iOS apps. A reusable, **MVVM-clean** date / time picker with full Khmer (ខ្មែរ) localization — Khmer numerals (០–៩), Khmer month names (មករា–ធ្នូ), Khmer weekday names (ច័ន្ទ–អាទិត្យ), and Khmer time labels (ម៉ោង / នាទី / វិនាទី). Runtime Khmer ↔ English switching, optional date-range constraint, full VoiceOver + Dynamic Type, bundled Kantumruy Pro font. **iOS 14+ / macOS 11+, Swift 5.9, zero dependencies.**
 
 ```
 ថ្ងៃ ច័ន្ទ ទី ១ ខែ មករា ឆ្នាំ ២០២៦
