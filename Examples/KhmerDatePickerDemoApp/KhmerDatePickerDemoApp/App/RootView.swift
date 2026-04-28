@@ -1,4 +1,5 @@
 import SwiftUI
+import KhmerDatePicker
 
 struct RootView: View {
     @EnvironmentObject private var environment: AppEnvironment
@@ -25,6 +26,7 @@ struct RootView: View {
                 .tabItem { Label(tab(.debug), systemImage: "ladybug") }
                 .accessibilityIdentifier("tab.debug")
         }
+        .khmerFont(environment.khmerFont)
     }
 
     private enum Tab { case date, time, formats, edge, debug }

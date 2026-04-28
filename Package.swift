@@ -16,7 +16,10 @@ let package = Package(
     targets: [
         .target(
             name: "KhmerDatePicker",
-            path: "Sources/KhmerDatePicker"
+            path: "Sources/KhmerDatePicker",
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "KhmerDatePickerTests",

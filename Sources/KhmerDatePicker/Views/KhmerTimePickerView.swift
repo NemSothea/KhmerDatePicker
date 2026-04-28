@@ -2,18 +2,23 @@ import SwiftUI
 
 struct KhmerTimePickerView: View {
     @ObservedObject var viewModel: KhmerDatePickerViewModel
+    @Environment(\.khmerFont) private var khmerFont
+
+    private enum TimeUnit {
+        case hour, minute, second
+    }
 
     var body: some View {
         HStack(spacing: 12) {
             timeColumn(
-                title: KhmerCalendarSymbols.hour,
+                unit: .hour,
                 values: viewModel.hourComponents,
                 selection: hourBinding,
                 label: viewModel.label(forHour:)
             )
 
             timeColumn(
-                title: KhmerCalendarSymbols.minute,
+                unit: .minute,
                 values: viewModel.minuteComponents,
                 selection: minuteBinding,
                 label: viewModel.label(forMinute:)
@@ -21,7 +26,7 @@ struct KhmerTimePickerView: View {
 
             if viewModel.showsSeconds {
                 timeColumn(
-                    title: KhmerCalendarSymbols.second,
+                    unit: .second,
                     values: viewModel.secondComponents,
                     selection: secondBinding,
                     label: viewModel.label(forSecond:)
@@ -33,19 +38,22 @@ struct KhmerTimePickerView: View {
 
     @ViewBuilder
     private func timeColumn(
-        title: String,
+        unit: TimeUnit,
         values: [Int],
         selection: Binding<Int>,
         label: @escaping (Int) -> String
     ) -> some View {
         VStack(spacing: 4) {
-            Text(viewModel.locale == .khmer ? title : englishTitle(for: title))
-                .font(.caption)
+            Text(displayTitle(for: unit))
+                .font(.khmer(khmerFont, size: 12, weight: .medium, relativeTo: .caption))
                 .foregroundColor(.secondary)
+                .accessibilityHidden(true)
 
             Picker(selection: selection, label: EmptyView()) {
                 ForEach(values, id: \.self) { value in
-                    Text(label(value)).tag(value)
+                    Text(label(value))
+                        .font(.khmer(khmerFont, size: 20, relativeTo: .title3))
+                        .tag(value)
                 }
             }
             #if os(iOS)
@@ -57,15 +65,29 @@ struct KhmerTimePickerView: View {
             .pickerStyle(.menu)
             .frame(maxWidth: .infinity)
             #endif
+            .accessibilityLabel(Text(accessibilityTitle(for: unit)))
         }
     }
 
-    private func englishTitle(for khmerTitle: String) -> String {
-        switch khmerTitle {
-        case KhmerCalendarSymbols.hour:   return "Hour"
-        case KhmerCalendarSymbols.minute: return "Minute"
-        case KhmerCalendarSymbols.second: return "Second"
-        default: return khmerTitle
+    private func displayTitle(for unit: TimeUnit) -> String {
+        switch (viewModel.locale, unit) {
+        case (.khmer, .hour):    return KhmerCalendarSymbols.hour
+        case (.khmer, .minute):  return KhmerCalendarSymbols.minute
+        case (.khmer, .second):  return KhmerCalendarSymbols.second
+        case (.english, .hour):   return "Hour"
+        case (.english, .minute): return "Minute"
+        case (.english, .second): return "Second"
+        }
+    }
+
+    private func accessibilityTitle(for unit: TimeUnit) -> String {
+        // VoiceOver always reads the English label so it's understandable to
+        // assistive-tech users regardless of the visible locale; the visible
+        // Khmer label is shown beside it.
+        switch unit {
+        case .hour:   return "Hour"
+        case .minute: return "Minute"
+        case .second: return "Second"
         }
     }
 

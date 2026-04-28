@@ -1,10 +1,24 @@
 # KhmerDatePicker
 
+**Swift Package developed by [NEMSOTHEA](https://github.com/NemSothea) · Sponsored by [KOSIGN (Cambodia) Investment Co., Ltd.](https://kosign.com.kh/)**
+
 A reusable, **MVVM-clean SwiftUI DatePicker** with full Khmer (ខ្មែរ) localization — Khmer numerals (០–៩), Khmer month names (មករា–ធ្នូ), Khmer weekday names (ច័ន្ទ–អាទិត្យ), and Khmer time labels (ម៉ោង / នាទី / វិនាទី). Switch between Khmer and English at runtime with a single binding.
 
 ```
 ថ្ងៃ ច័ន្ទ ទី ១ ខែ មករា ឆ្នាំ ២០២៦
 ```
+
+---
+
+## 🇰🇭 Developed by NEMSOTHEA · Sponsored by KOSIGN
+
+> **KhmerDatePicker is designed and developed by [NEMSOTHEA](https://github.com/NemSothea), and proudly sponsored by [KOSIGN (Cambodia) Investment Co., Ltd.](https://kosign.com.kh/)** — a Cambodian software-engineering company investing in open-source tooling for the Khmer developer community.
+>
+> NEMSOTHEA leads the architecture, implementation, testing, and long-term maintenance of this package. KOSIGN's sponsorship funds the engineering time, design, and roadmap so that every Cambodian iOS team can ship date-and-time UI in their own language without rewriting it from scratch.
+>
+> អភិវឌ្ឍដោយ **NEMSOTHEA** · ឧបត្ថម្ភដោយ **KOSIGN (Cambodia) Investment Co., Ltd.**
+
+If your organization would like to support KhmerDatePicker (additional locales, Buddhist-Era calendar, accessibility, CI hardening), please reach out — see the contact details under [Sponsors & contributing](#sponsors--contributing).
 
 ---
 
@@ -15,7 +29,10 @@ A reusable, **MVVM-clean SwiftUI DatePicker** with full Khmer (ខ្មែរ) 
 - Khmer ↔ English locale switch at runtime
 - Six built-in date format styles (`.full`, `.long`, `.medium`, `.short`, `.time`, `.dateTime`)
 - Configurable first-weekday (Sunday or Monday)
+- Optional `in: ClosedRange<Date>` to constrain selectable dates
 - Optional seconds picker
+- Full VoiceOver labels and Dynamic Type scaling out of the box
+- Bundled **Kantumruy Pro** Khmer font (SIL OFL 1.1), opt-in via `.khmerFont(.kantumruyPro)`
 - Pure Foundation + SwiftUI — zero third-party dependencies
 
 ## Installation
@@ -30,7 +47,7 @@ A reusable, **MVVM-clean SwiftUI DatePicker** with full Khmer (ខ្មែរ) 
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-org/KhmerDatePicker.git", from: "1.0.0")
+    .package(url: "https://github.com/NemSothea/KhmerDatePicker.git", from: "1.0.0")
 ],
 targets: [
     .target(
@@ -57,6 +74,35 @@ struct MyView: View {
 }
 ```
 
+## Screenshots
+
+Captured from the demo app at `Examples/KhmerDatePickerDemoApp/` running on iPhone 17 (iOS 26.4).
+
+| Khmer | English |
+|---|---|
+| ![Date](docs/screenshots/01-date-km.png) | ![Date](docs/screenshots/02-date-en.png) |
+| ![Time](docs/screenshots/03-time-km.png) | ![Time](docs/screenshots/04-time-en.png) |
+| ![Formats](docs/screenshots/05-formats-km.png) | ![Formats](docs/screenshots/06-formats-en.png) |
+| ![Edge cases](docs/screenshots/07-edge-km.png) | ![Edge cases](docs/screenshots/08-edge-en.png) |
+| ![Debug](docs/screenshots/09-debug-km.png) | ![Debug](docs/screenshots/10-debug-en.png) |
+
+To regenerate after a UI change, run `ScreenshotCaptureUITests` (gated behind `CAPTURE_SCREENSHOTS=1` so it doesn't slow normal CI):
+
+```bash
+cd Examples/KhmerDatePickerDemoApp
+SIMCTL_CHILD_CAPTURE_SCREENSHOTS=1 xcodebuild test \
+  -project KhmerDatePickerDemoApp.xcodeproj \
+  -scheme KhmerDatePickerDemoApp \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.4' \
+  -only-testing:KhmerDatePickerDemoAppUITests/ScreenshotCaptureUITests \
+  -derivedDataPath .build
+xcrun xcresulttool export attachments \
+  --path .build/Logs/Test/Test-*.xcresult \
+  --output-path /tmp/khmer-shots-export
+```
+
+Then rename the exported PNGs (the manifest lists each `suggestedHumanReadableName` like `01-date-km_0_<UUID>.png` → strip the `_0_<UUID>` suffix and copy to `docs/screenshots/`).
+
 ## All three modes
 
 ```swift
@@ -64,6 +110,27 @@ KhmerDatePickerView(selection: $date, mode: .date)
 KhmerDatePickerView(selection: $date, mode: .time, showsSeconds: true)
 KhmerDatePickerView(selection: $date, mode: .dateAndTime)
 ```
+
+## Constraining the selectable range
+
+Pass a `ClosedRange<Date>` via `in:` to restrict which dates the user can pick. Days outside the range are visually dimmed and not tappable; the previous/next-month chevrons disable when the adjacent month is fully out of range; the time wheel clamps any value that would push the selection past the bounds.
+
+```swift
+let today = Calendar.current.startOfDay(for: Date())
+let oneYear = Calendar.current.date(byAdding: .year, value: 1, to: today)!
+
+KhmerDatePickerView(
+    selection: $date,
+    in: today...oneYear,        // pickable range
+    mode: .date
+)
+```
+
+The initial `selection` is clamped into the range automatically, so there is no need for the caller to validate it first.
+
+## Accessibility
+
+Every day cell exposes a fully-formatted VoiceOver label (e.g. *"ថ្ងៃ ច័ន្ទ ទី ១ ខែ មករា ឆ្នាំ ២០២៦"*), the selected day announces with the `isSelected` trait, and the month-name header is marked as a heading. The hour/minute/second wheels each carry an English VoiceOver label so assistive-tech users can identify the column regardless of the visible locale. All Khmer text scales with **Dynamic Type** by default — pass `relativeTo: nil` to `Font.khmer(_:size:)` if you need a fixed size.
 
 ## Switching locale at runtime
 
@@ -85,6 +152,34 @@ var body: some View {
 ```
 
 The picker re-renders all weekday/month/numeral text whenever `locale` changes.
+
+## Khmer font
+
+The package ships **Kantumruy Pro** (a modern, screen-optimised Khmer UI font by Danh Hong, licensed under SIL OFL 1.1). It is **not** applied by default — you opt in with the `.khmerFont(_:)` modifier:
+
+```swift
+KhmerDatePickerView(selection: $date)
+    .khmerFont(.kantumruyPro)
+```
+
+Three options are available:
+
+```swift
+public enum KhmerFont {
+    case system                    // default — uses iOS's built-in Khmer Sangam MN
+    case kantumruyPro              // bundled with the package
+    case custom(name: String)      // any PostScript name registered by your app
+}
+```
+
+For a font your app already ships (for example Noto Sans Khmer), pass its PostScript name:
+
+```swift
+KhmerDatePickerView(selection: $date)
+    .khmerFont(.custom(name: "NotoSansKhmer-Regular"))
+```
+
+Bundled fonts are registered with CoreText lazily on first use — there is no `Info.plist` configuration to add. The OFL license ships at `Sources/KhmerDatePicker/Resources/Fonts/OFL.txt` to satisfy the OFL's redistribution clause.
 
 ## Custom formatting
 
@@ -167,14 +262,16 @@ The picker uses the SwiftUI environment `Color.accentColor` for selected-day fil
 
 `@StateObject` (iOS 14), `LazyVGrid` (iOS 14), and `.onChange(of:)` (iOS 14) collapse what would otherwise be ~150 lines of manual layout and `ObservableObject` plumbing into idiomatic SwiftUI. iOS 14 is also the practical floor for new SwiftUI apps in 2026 — &lt;1% of active devices are below it. If you really need iOS 13, the localization layer (`KhmerNumerals`, `KhmerCalendarSymbols`, `KhmerDateFormatter`) is iOS 13-clean — fork the views and substitute `@ObservedObject` + manual `HStack` rows.
 
-## Running the example
+## Running the demo app
 
-The `Examples/KhmerDatePickerExample/ContentView.swift` file is a self-contained SwiftUI screen. To try it:
+A full SwiftUI demo lives at `Examples/KhmerDatePickerDemoApp/`. It exercises every mode, locale, format style, and edge case the package supports, plus a Debug screen used to capture the README screenshots.
 
-1. Create a new SwiftUI iOS 14+ app in Xcode.
-2. **File → Add Package Dependencies…** → add this repo (or a local path).
-3. Replace the generated `ContentView.swift` with the file from `Examples/KhmerDatePickerExample/`.
-4. Run.
+```bash
+cd Examples/KhmerDatePickerDemoApp
+open KhmerDatePickerDemoApp.xcodeproj
+```
+
+Build and run on any iOS 14+ simulator or device. The demo depends on the package via a local SPM reference, so changes to `Sources/` are picked up immediately.
 
 ## Tests
 
@@ -184,6 +281,38 @@ swift test
 
 Covers numeral conversion (Arabic ↔ Khmer, padding, mixed strings) and date formatting (every `Style` for both locales).
 
+## Sponsors & contributing
+
+### Author / maintainer
+
+**NEMSOTHEA** ([@NemSothea](https://github.com/NemSothea)) — original author, architect, and ongoing maintainer. All issues, PRs, and roadmap decisions land here first.
+
+### Primary sponsor
+
+**KOSIGN (Cambodia) Investment Co., Ltd.** — primary sponsor. KOSIGN is a Cambodian software-engineering firm investing in open-source tooling for the Khmer developer community; their sponsorship funds NEMSOTHEA's time on this package.
+
+- 🌐 [kosign.com.kh](https://kosign.com.kh/)
+- 📍 Phnom Penh, Cambodia
+
+### Contributing
+
+Issues and pull requests are welcome. Good first contributions:
+
+- Adding a third locale (Buddhist Era, Lao, Thai)
+- Date range / min-max constraints (`in: ClosedRange<Date>`)
+- VoiceOver / Dynamic Type polish on the calendar grid and time wheels
+- DocC catalog for the public API
+- GitHub Actions CI for `swift test` on each push
+
+Before opening a PR, please run `swift test` locally and capture fresh screenshots from the demo app if you change UI.
+
+### Acknowledgments
+
+- **Kantumruy Pro** — bundled Khmer UI font, by Danh Hong / The Kantumruy Pro Project Authors. SIL OFL 1.1.
+- The Cambodian iOS developer community — for the years of "why is there no Khmer DatePicker?" that motivated this package.
+
 ## License
 
-MIT — replace this section with your project's license before publishing.
+Released under the [MIT License](LICENSE) — copyright © 2026 Nem Sothea & KOSIGN (Cambodia) Investment Co., Ltd.
+
+The bundled **Kantumruy Pro** font is licensed separately under the **SIL Open Font License 1.1**. The full license text is shipped at `Sources/KhmerDatePicker/Resources/Fonts/OFL.txt`. Copyright 2022 The Kantumruy Pro Project Authors (https://github.com/googlefonts/kantumruy).

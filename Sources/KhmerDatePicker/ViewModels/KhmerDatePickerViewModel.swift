@@ -1,15 +1,16 @@
 import Foundation
 import Combine
 
-public final class KhmerDatePickerViewModel: ObservableObject {
+final class KhmerDatePickerViewModel: ObservableObject {
 
-    @Published public var selectedDate: Date
-    @Published public var displayedMonth: Date
-    @Published public var locale: KhmerLocale
-    @Published public var mode: KhmerDatePickerMode
-    @Published public var showsSeconds: Bool
+    @Published var selectedDate: Date
+    @Published var displayedMonth: Date
+    @Published var locale: KhmerLocale
+    @Published var mode: KhmerDatePickerMode
+    @Published var showsSeconds: Bool
+    @Published var range: ClosedRange<Date>?
 
-    public let firstWeekday: Int
+    let firstWeekday: Int
 
     private var calendar: Calendar {
         var cal = Calendar(identifier: .gregorian)
@@ -18,24 +19,27 @@ public final class KhmerDatePickerViewModel: ObservableObject {
         return cal
     }
 
-    public init(
+    init(
         initialDate: Date = Date(),
         locale: KhmerLocale = .khmer,
         mode: KhmerDatePickerMode = .date,
         firstWeekday: Int = 1,
-        showsSeconds: Bool = false
+        showsSeconds: Bool = false,
+        range: ClosedRange<Date>? = nil
     ) {
-        self.selectedDate = initialDate
-        self.displayedMonth = Self.startOfMonth(for: initialDate, firstWeekday: firstWeekday)
+        let clamped = Self.clamp(initialDate, to: range)
+        self.selectedDate = clamped
+        self.displayedMonth = Self.startOfMonth(for: clamped, firstWeekday: firstWeekday)
         self.locale = locale
         self.mode = mode
         self.firstWeekday = firstWeekday
         self.showsSeconds = showsSeconds
+        self.range = range
     }
 
     // MARK: Header
 
-    public var monthLabel: String {
+    var monthLabel: String {
         let comps = calendar.dateComponents([.month, .year], from: displayedMonth)
         let monthIndex = (comps.month ?? 1) - 1
         let year = comps.year ?? 0
@@ -44,24 +48,26 @@ public final class KhmerDatePickerViewModel: ObservableObject {
         return "\(monthName) \(yearString)"
     }
 
-    public var weekdayHeader: [String] {
+    var weekdayHeader: [String] {
         let symbols = KhmerCalendarSymbols.weekdaySymbols(short: true, locale: locale)
         return rotated(symbols, by: firstWeekday - 1)
     }
 
     // MARK: Calendar grid
 
-    public struct DayCell: Identifiable, Hashable {
-        public let id: Date
-        public let date: Date
-        public let dayNumber: Int
-        public let label: String
-        public let isInDisplayedMonth: Bool
-        public let isToday: Bool
-        public let isSelected: Bool
+    struct DayCell: Identifiable, Hashable {
+        let id: Date
+        let date: Date
+        let dayNumber: Int
+        let label: String
+        let isInDisplayedMonth: Bool
+        let isToday: Bool
+        let isSelected: Bool
+        let isEnabled: Bool
+        let accessibilityLabel: String
     }
 
-    public var dayCells: [DayCell] {
+    var dayCells: [DayCell] {
         guard let monthInterval = calendar.dateInterval(of: .month, for: displayedMonth) else {
             return []
         }
@@ -74,7 +80,6 @@ public final class KhmerDatePickerViewModel: ObservableObject {
         var cells: [DayCell] = []
         cells.reserveCapacity(42)
 
-        // Leading days from previous month.
         if leadingBlanks > 0,
            let prevMonthStart = calendar.date(byAdding: .month, value: -1, to: firstOfMonth),
            let prevDays = calendar.range(of: .day, in: .month, for: prevMonthStart)?.count {
@@ -87,14 +92,12 @@ public final class KhmerDatePickerViewModel: ObservableObject {
             }
         }
 
-        // Current month days.
         for day in 1...daysInMonth {
             if let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth) {
                 cells.append(makeCell(for: date, dayNumber: day, isInDisplayedMonth: true))
             }
         }
 
-        // Trailing days to fill 6 rows (42 cells) for stable layout.
         let trailing = 42 - cells.count
         if trailing > 0,
            let nextMonthStart = calendar.date(byAdding: .month, value: 1, to: firstOfMonth) {
@@ -115,79 +118,120 @@ public final class KhmerDatePickerViewModel: ObservableObject {
             label: KhmerNumerals.render(dayNumber, in: locale),
             isInDisplayedMonth: isInDisplayedMonth,
             isToday: calendar.isDateInToday(date),
-            isSelected: calendar.isDate(date, inSameDayAs: selectedDate)
+            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+            isEnabled: isDayEnabled(date),
+            accessibilityLabel: KhmerDateFormatter.string(
+                from: date,
+                style: .full,
+                locale: locale,
+                calendar: calendar
+            )
         )
     }
 
     // MARK: Time
 
-    public var hourComponents: [Int] { Array(0...23) }
-    public var minuteComponents: [Int] { Array(0...59) }
-    public var secondComponents: [Int] { Array(0...59) }
+    var hourComponents: [Int] { Array(0...23) }
+    var minuteComponents: [Int] { Array(0...59) }
+    var secondComponents: [Int] { Array(0...59) }
 
-    public var selectedHour: Int {
+    var selectedHour: Int {
         get { calendar.component(.hour, from: selectedDate) }
         set { setTime(hour: newValue) }
     }
 
-    public var selectedMinute: Int {
+    var selectedMinute: Int {
         get { calendar.component(.minute, from: selectedDate) }
         set { setTime(minute: newValue) }
     }
 
-    public var selectedSecond: Int {
+    var selectedSecond: Int {
         get { calendar.component(.second, from: selectedDate) }
         set { setTime(second: newValue) }
     }
 
-    public func label(forHour hour: Int) -> String {
+    func label(forHour hour: Int) -> String {
         KhmerNumerals.render(hour, in: locale, paddedTo: 2)
     }
 
-    public func label(forMinute minute: Int) -> String {
+    func label(forMinute minute: Int) -> String {
         KhmerNumerals.render(minute, in: locale, paddedTo: 2)
     }
 
-    public func label(forSecond second: Int) -> String {
+    func label(forSecond second: Int) -> String {
         KhmerNumerals.render(second, in: locale, paddedTo: 2)
+    }
+
+    // MARK: Range
+
+    var canGoToPreviousMonth: Bool {
+        guard let range = range else { return true }
+        guard let prev = calendar.date(byAdding: .month, value: -1, to: displayedMonth),
+              let interval = calendar.dateInterval(of: .month, for: prev) else {
+            return false
+        }
+        return interval.start < range.upperBound && interval.end > range.lowerBound
+    }
+
+    var canGoToNextMonth: Bool {
+        guard let range = range else { return true }
+        guard let next = calendar.date(byAdding: .month, value: 1, to: displayedMonth),
+              let interval = calendar.dateInterval(of: .month, for: next) else {
+            return false
+        }
+        return interval.start < range.upperBound && interval.end > range.lowerBound
+    }
+
+    private func isDayEnabled(_ date: Date) -> Bool {
+        guard let range = range else { return true }
+        let dayStart = calendar.startOfDay(for: date)
+        guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else {
+            return false
+        }
+        return dayStart < range.upperBound && dayEnd > range.lowerBound
     }
 
     // MARK: Mutations
 
-    public func selectDate(_ date: Date) {
-        selectedDate = mergeTime(into: date)
-        if !calendar.isDate(date, equalTo: displayedMonth, toGranularity: .month) {
-            displayedMonth = Self.startOfMonth(for: date, firstWeekday: firstWeekday)
+    func selectDate(_ date: Date) {
+        let merged = mergeTime(into: date)
+        let clamped = Self.clamp(merged, to: range)
+        selectedDate = clamped
+        if !calendar.isDate(clamped, equalTo: displayedMonth, toGranularity: .month) {
+            displayedMonth = Self.startOfMonth(for: clamped, firstWeekday: firstWeekday)
         }
     }
 
-    public func goToPreviousMonth() {
+    func goToPreviousMonth() {
+        guard canGoToPreviousMonth else { return }
         if let prev = calendar.date(byAdding: .month, value: -1, to: displayedMonth) {
             displayedMonth = Self.startOfMonth(for: prev, firstWeekday: firstWeekday)
         }
     }
 
-    public func goToNextMonth() {
+    func goToNextMonth() {
+        guard canGoToNextMonth else { return }
         if let next = calendar.date(byAdding: .month, value: 1, to: displayedMonth) {
             displayedMonth = Self.startOfMonth(for: next, firstWeekday: firstWeekday)
         }
     }
 
-    public func goToToday() {
-        let today = Date()
+    func goToToday() {
+        let today = Self.clamp(Date(), to: range)
         selectedDate = today
         displayedMonth = Self.startOfMonth(for: today, firstWeekday: firstWeekday)
     }
 
-    public func formatted(style: KhmerDateFormatter.Style) -> String {
+    func formatted(style: KhmerDateFormatter.Style) -> String {
         KhmerDateFormatter.string(from: selectedDate, style: style, locale: locale, calendar: calendar)
     }
 
-    public func syncSelection(_ date: Date) {
-        guard date != selectedDate else { return }
-        selectedDate = date
-        if !calendar.isDate(date, equalTo: displayedMonth, toGranularity: .month) {
-            displayedMonth = Self.startOfMonth(for: date, firstWeekday: firstWeekday)
+    func syncSelection(_ date: Date) {
+        let clamped = Self.clamp(date, to: range)
+        guard clamped != selectedDate else { return }
+        selectedDate = clamped
+        if !calendar.isDate(clamped, equalTo: displayedMonth, toGranularity: .month) {
+            displayedMonth = Self.startOfMonth(for: clamped, firstWeekday: firstWeekday)
         }
     }
 
@@ -199,7 +243,7 @@ public final class KhmerDatePickerViewModel: ObservableObject {
         if let minute = minute { comps.minute = minute }
         if let second = second { comps.second = second }
         if let updated = calendar.date(from: comps) {
-            selectedDate = updated
+            selectedDate = Self.clamp(updated, to: range)
         }
     }
 
@@ -217,6 +261,13 @@ public final class KhmerDatePickerViewModel: ObservableObject {
         cal.firstWeekday = firstWeekday
         let comps = cal.dateComponents([.year, .month], from: date)
         return cal.date(from: comps) ?? date
+    }
+
+    private static func clamp(_ date: Date, to range: ClosedRange<Date>?) -> Date {
+        guard let range = range else { return date }
+        if date < range.lowerBound { return range.lowerBound }
+        if date > range.upperBound { return range.upperBound }
+        return date
     }
 
     private func rotated<T>(_ array: [T], by offset: Int) -> [T] {

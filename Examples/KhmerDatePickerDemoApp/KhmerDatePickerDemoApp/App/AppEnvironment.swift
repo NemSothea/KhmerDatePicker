@@ -8,6 +8,7 @@ final class AppEnvironment: ObservableObject {
 
     @Published var locale: KhmerLocale
     @Published var firstWeekday: Int
+    @Published var khmerFont: KhmerFont
     @Published var formatterLog: [LogEntry]
 
     /// Hard cap on the in-memory log so the Debug tab can't grow without bound.
@@ -15,10 +16,12 @@ final class AppEnvironment: ObservableObject {
 
     init(
         locale: KhmerLocale = .khmer,
-        firstWeekday: Int = 1
+        firstWeekday: Int = 1,
+        khmerFont: KhmerFont = .system
     ) {
         self.locale = locale
         self.firstWeekday = firstWeekday
+        self.khmerFont = khmerFont
         self.formatterLog = []
     }
 

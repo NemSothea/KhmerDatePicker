@@ -17,6 +17,8 @@ struct DebugScreen: View {
                 VStack(spacing: 16) {
                     LocaleToggle()
 
+                    FontToggle()
+
                     SectionCard(
                         title: title("ឧបករណ៍​ជ្រើសរើស", "Picker"),
                         subtitle: title("ផ្លាស់ប្ដូរ​ដើម្បី​បង្កើត log", "Change date to append a log entry")
@@ -133,5 +135,47 @@ struct DebugScreen_Previews: PreviewProvider {
     static var previews: some View {
         DebugScreen()
             .environmentObject(AppEnvironment(locale: .khmer))
+    }
+}
+
+private struct FontToggle: View {
+    @EnvironmentObject private var environment: AppEnvironment
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.headline)
+            Spacer(minLength: 8)
+            chip(.system,       title: title("ប្រព័ន្ធ", "System"),       id: "system")
+            chip(.kantumruyPro, title: "Kantumruy Pro",                  id: "kantumruyPro")
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var label: String {
+        environment.locale == .khmer ? "ពុម្ព​អក្សរ" : "Font"
+    }
+
+    private func title(_ km: String, _ en: String) -> String {
+        environment.locale == .khmer ? km : en
+    }
+
+    private func chip(_ font: KhmerFont, title: String, id: String) -> some View {
+        Button(action: { environment.khmerFont = font }) {
+            Text(title)
+                .font(.subheadline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(environment.khmerFont == font ? Color.accentColor.opacity(0.18) : Color.secondary.opacity(0.08))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(environment.khmerFont == font ? Color.accentColor : Color.clear, lineWidth: 1)
+                )
+        }
+        .buttonStyle(BorderlessButtonStyle())
+        .accessibilityIdentifier("font.\(id)")
     }
 }
