@@ -87,15 +87,9 @@ struct MyView: View {
 
 ## Demo
 
-<!-- Replace the line below with: ![Demo GIF](docs/demo.gif) once you record it -->
-> **Demo GIF coming soon.** Record it from the iOS Simulator:
-> ```bash
-> # 1. Boot the simulator, then:
-> xcrun simctl io booted recordVideo /tmp/khmer-demo.mov
-> # 2. Stop with Ctrl+C, then convert to GIF:
-> ffmpeg -i /tmp/khmer-demo.mov -vf "fps=15,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 docs/demo.gif
-> ```
-> Replace the comment above with `![Demo](docs/demo.gif)` and commit.
+![KhmerDatePickerSwiftUI — Khmer calendar with Khmer localization and English switching](docs/demo.gif)
+
+*SwiftUI DatePicker with full Khmer localization — date, time, and format styles in Khmer ↔ English.*
 
 ## Screenshots
 
