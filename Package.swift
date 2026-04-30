@@ -2,29 +2,29 @@
 import PackageDescription
 
 let package = Package(
-    name: "KhmerDatePicker",
+    name: "KhmerDatePickerSwiftUI",
     platforms: [
         .iOS(.v14),
         .macOS(.v11)
     ],
     products: [
         .library(
-            name: "KhmerDatePicker",
-            targets: ["KhmerDatePicker"]
+            name: "KhmerDatePickerSwiftUI",
+            targets: ["KhmerDatePickerSwiftUI"]
         )
     ],
     targets: [
         .target(
-            name: "KhmerDatePicker",
-            path: "Sources/KhmerDatePicker",
+            name: "KhmerDatePickerSwiftUI",
+            path: "Sources/KhmerDatePickerSwiftUI",
             resources: [
                 .process("Resources")
             ]
         ),
         .testTarget(
-            name: "KhmerDatePickerTests",
-            dependencies: ["KhmerDatePicker"],
-            path: "Tests/KhmerDatePickerTests"
+            name: "KhmerDatePickerSwiftUITests",
+            dependencies: ["KhmerDatePickerSwiftUI"],
+            path: "Tests/KhmerDatePickerSwiftUITests"
         )
     ]
 )

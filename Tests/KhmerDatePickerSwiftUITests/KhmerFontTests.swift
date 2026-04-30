@@ -2,7 +2,7 @@ import XCTest
 #if canImport(CoreText)
 import CoreText
 #endif
-@testable import KhmerDatePicker
+@testable import KhmerDatePickerSwiftUI
 
 final class KhmerFontTests: XCTestCase {
 

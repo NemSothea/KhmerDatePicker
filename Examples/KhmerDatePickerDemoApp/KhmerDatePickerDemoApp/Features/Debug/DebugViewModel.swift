@@ -1,5 +1,5 @@
 import Foundation
-import KhmerDatePicker
+import KhmerDatePickerSwiftUI
 
 final class DebugViewModel: ObservableObject {
 

@@ -1,5 +1,5 @@
 import XCTest
-import KhmerDatePicker
+import KhmerDatePickerSwiftUI
 @testable import KhmerDatePickerDemoApp
 
 final class ViewModelTests: XCTestCase {

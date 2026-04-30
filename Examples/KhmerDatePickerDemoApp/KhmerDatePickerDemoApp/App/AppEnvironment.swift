@@ -1,5 +1,5 @@
 import Foundation
-import KhmerDatePicker
+import KhmerDatePickerSwiftUI
 
 /// Shared, app-wide state. Injected at the root via `.environmentObject` so every
 /// screen reads from (and writes to) a single source of truth — the locale toggle

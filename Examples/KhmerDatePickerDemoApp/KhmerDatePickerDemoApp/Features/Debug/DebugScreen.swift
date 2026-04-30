@@ -1,5 +1,5 @@
 import SwiftUI
-import KhmerDatePicker
+import KhmerDatePickerSwiftUI
 
 struct DebugScreen: View {
     @EnvironmentObject private var environment: AppEnvironment

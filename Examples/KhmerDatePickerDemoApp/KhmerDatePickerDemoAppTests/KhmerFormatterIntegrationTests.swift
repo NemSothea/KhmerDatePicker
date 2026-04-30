@@ -1,5 +1,5 @@
 import XCTest
-import KhmerDatePicker
+import KhmerDatePickerSwiftUI
 @testable import KhmerDatePickerDemoApp
 
 /// Integration tests at the app level that exercise the formatter through the

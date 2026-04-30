@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **KhmerDatePicker** are documented here.
+All notable changes to **KhmerDatePickerSwiftUI** are documented here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -50,5 +50,5 @@ Initial public release.
 
 - `KhmerDatePickerViewModel` and its `DayCell` struct are deliberately scoped `internal`. The committed v1.0.0 public surface is: `KhmerDatePickerView`, `KhmerDatePickerMode`, `KhmerLocale`, `KhmerFont`, `KhmerDateFormatter` (+ `Style`), `KhmerNumerals`, `KhmerCalendarSymbols`, `KhmerDatePickerInfo`, plus the `EnvironmentValues.khmerFont` key and the `View.khmerFont(_:)` modifier. The view model is free to be refactored without breaking SemVer.
 
-[Unreleased]: https://github.com/NemSothea/KhmerDatePicker/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/NemSothea/KhmerDatePicker/releases/tag/v1.0.0
+[Unreleased]: https://github.com/NemSothea/KhmerDatePickerSwiftUI/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/NemSothea/KhmerDatePickerSwiftUI/releases/tag/v1.0.0
